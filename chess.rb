@@ -1,11 +1,23 @@
 require 'colorize'
 require 'debugger'
+require 'yaml'
 
 
 class Game
 
   KEY = {"a" => 0, "b" => 1, "c" => 2, "d" => 3, "e" => 4, "f" => 5, "g" => 6, "h" => 7}
   attr_accessor :game_board
+
+  # def start
+  #   puts "Do you want to start a new game (n) or load the old game (l)?"
+  #   type = gets.chomp
+  #   if type == "n"
+  #     run
+  #   elsif type == "l"
+  #     old_game = YAML::load(File.read("save_chess_game.txt"))
+  #     old_game.run
+  #   end
+  # end
 
   def run
     make_board
@@ -18,6 +30,10 @@ class Game
       show_board
       puts "Blue player go!"
       get_move(@player2)
+      #save game here
+      # File.open("save_chess_game.txt", "w") do |f|
+      #   f.write(YAML.dump(self))
+      # end
     end
   end
 
