@@ -1,5 +1,5 @@
 require 'colorize'
-#require 'debugger'
+require 'debugger'
 require 'yaml'
 
 
@@ -8,16 +8,9 @@ class Game
   KEY = {"a" => 0, "b" => 1, "c" => 2, "d" => 3, "e" => 4, "f" => 5, "g" => 6, "h" => 7}
   attr_accessor :game_board
 
-  # def start
-  #   puts "Do you want to start a new game (n) or load the old game (l)?"
-  #   type = gets.chomp
-  #   if type == "n"
-  #     run
-  #   elsif type == "l"
-  #     old_game = YAML::load(File.read("save_chess_game.txt"))
-  #     old_game.run
-  #   end
-  # end
+  def start
+ #<< This includes the save/load feature, which is disabled.
+  end
 
   def run
     make_board
@@ -45,7 +38,7 @@ class Game
     @game_board[0] = [Rook.new(:red, 0, 0, self), Knight.new(:red, 0, 1, self), Bishop.new(:red, 0, 2, self), King.new(:red, 0, 3, self), Queen.new(:red, 0, 4, self), Bishop.new(:red, 0, 5, self), Knight.new(:red, 0, 6, self), Rook.new(:red, 0, 7, self)]
     8.times {|i| @game_board[1][i] =  Pawn.new(:red, 1, i, self)}
     8.times {|i| @game_board[6][i] =  Pawn.new(:blue, 6, i, self)}
-    @game_board[7] = [Rook.new(:blue, 7, 0, self), Knight.new(:blue, 7, 1, self), Bishop.new(:blue, 7, 2, self), King.new(:blue, 7, 3, self), Queen.new(:blue, 7, 4, self), Bishop.new(:blue, 7, 5, self), Knight.new(:blue, 7, 6, self), Rook.new(:blue, 7, 7, self)]
+    @game_board[7] = [Rook.new(:blue, 7, 0, self), Knight.new(:blue, 7, 1, self), Bishop.new(:blue, 7, 2, self), King.new(:blue, 7, 3, self), Queen.new(:blue, 7, 4, self), Bishop.new(:blue, 7, 5, self), Knight.new(:blue, 7, 6, self), Rook.new(:blue, 7, 7, self)] #<< If I have time, I'll circle back to DRY
   end
 
   def show_board
@@ -105,7 +98,8 @@ class Game
     end
   end
 
-  #this doesn't check -- it just makes a move if it's valid.
+  #this doesn't check -- it just makes a move.
+  #Always run this AFTER checks have been made
   def make_move(move)
     # debugger
     move_coords = convert_coords(move)
@@ -131,6 +125,21 @@ class Game
     end
     p return_array
     return_array
+  end
+
+  # Returns an array of all surviving pieces on opposite team
+  def opposing_forces(opposing_team)
+    opposing_pieces = []
+    @game_board.each do |row|
+      row.each do |tile|
+        if !tile.nil?
+          if tile.player != opposing_team
+            opposing_pieces << tile
+          end
+        end
+      end
+    end
+    opposing_pieces
   end
 end
 
@@ -331,7 +340,22 @@ class King < Piece
 
   def possible_moves
     possible_moves = circle(@row, @column)
+    possible_moves.select {|move| check?(move[0],move[1]) == false }
   end
+
+  def check?(x,y)
+    #find all opposing pieces
+    opposing_pieces = @game.opposing_forces(self.player)
+    #find where every opposing piece can move
+    targetable_spaces = []
+    opposing_pieces.each do |piece|
+      targetable_spaces += piece.possible_moves
+    end
+    #king can not move to a space where an opposing player can go
+    return true if targetable_spaces.include?([x,y])
+    false #<< else return false
+  end
+
 end
 
 class Queen < Piece
