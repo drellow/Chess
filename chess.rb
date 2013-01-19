@@ -160,6 +160,44 @@ class Piece
     @column = column
     @game = game
   end
+
+  def in_bounds?(x,y)
+    (0..7).include?(x) && (0..7).include?(y)
+  end
+
+  def horizontals(x,y)
+    arr = []
+    horizontals = [[-1, 0], [0, 1], [1, 0], [0,-1]]
+    horizontals.each do |dir|
+      xdir = x
+      ydir = y
+      while true
+        xdir += dir[0]
+        ydir += dir[1]
+        arr << [xdir,ydir] if in_bounds?(xdir,ydir)
+        break if !in_bounds?(xdir,ydir)
+      end
+    end
+    arr
+  end
+
+  def diagonals(x,y)
+    arr = []
+    diagonals = [[-1, 1], [1, 1], [1, -1], [-1,-1]]
+    diagonals.each do |dir|
+      xdir = x
+      ydir = y
+      while true
+        xdir += dir[0]
+        ydir += dir[1]
+        arr << [xdir,ydir] if in_bounds?(xdir,ydir)
+        break if !in_bounds?(xdir,ydir)
+      end
+    end
+    arr
+  end
+
+
 end
 
 class Knight < Piece
@@ -172,6 +210,15 @@ class Knight < Piece
 
   def possible_moves
     possible_moves = []
+    possible_moves << [@row + 2, @column + 1]
+    possible_moves << [@row + 1, @column + 2]
+    possible_moves << [@row + 1, @column - 2]
+    possible_moves << [@row + 2, @column - 1]
+    possible_moves << [@row - 1, @column - 2]
+    possible_moves << [@row - 2, @column - 1]
+    possible_moves << [@row - 2, @column + 1]
+    possible_moves << [@row - 1, @column + 2]
+    possible_moves
   end
 end
 
@@ -212,7 +259,6 @@ class Pawn < Piece
         move_array << [@row - 1, @column - 1]
       end
     end
-    #go through move_array and make sure each value is in range 0-7
     move_array
   end
 
@@ -227,7 +273,8 @@ class Bishop < Piece
   end
 
   def possible_moves
-    possible_moves = []
+    starting_position = [@row, @column]
+    possible_moves = diagonals(@row,@column)
   end
 
 end
@@ -241,7 +288,7 @@ class Rook < Piece
   end
 
   def possible_moves
-    possible_moves = []
+    possible_moves = horizontals(@row, @column)
   end
 end
 
@@ -267,6 +314,6 @@ class Queen < Piece
   end
 
   def possible_moves
-    possible_moves = []
+    possible_moves = diagonals(@row, @column) + horizontals(@row, @column)
   end
 end
