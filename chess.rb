@@ -1,5 +1,5 @@
 require 'colorize'
-require 'debugger'
+#require 'debugger'
 require 'yaml'
 
 
@@ -53,7 +53,9 @@ class Game
       display_row = "#{(index1 - 8)*-1}  "
       row.each_with_index do |square, index2|
         if square.nil?
-          display_row << "\u2610 "
+          # display_row << "\u2610 "
+          display_row << "* "
+
         else
           display_row << square.token + " "
         end
@@ -165,6 +167,21 @@ class Piece
     (0..7).include?(x) && (0..7).include?(y)
   end
 
+  def circle(x,y)
+    directions = [[-1, 0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1]]
+    arr = []
+    directions.each do |dir|
+      xdir = x
+      ydir = y
+      xdir += dir[0]
+      ydir += dir[1]
+      arr << [xdir,ydir] if in_bounds?(xdir,ydir)
+    end
+    arr
+  end
+
+  #I repeat myself in horizontals and diagonals
+  #Hopefully I'll be able to circle back and DRY this out.
   def horizontals(x,y)
     arr = []
     horizontals = [[-1, 0], [0, 1], [1, 0], [0,-1]]
@@ -175,6 +192,7 @@ class Piece
         xdir += dir[0]
         ydir += dir[1]
         arr << [xdir,ydir] if in_bounds?(xdir,ydir)
+        break if @game.game_board[xdir][ydir] != nil
         break if !in_bounds?(xdir,ydir)
       end
     end
@@ -191,6 +209,7 @@ class Piece
         xdir += dir[0]
         ydir += dir[1]
         arr << [xdir,ydir] if in_bounds?(xdir,ydir)
+        break if @game.game_board[xdir][ydir] != nil
         break if !in_bounds?(xdir,ydir)
       end
     end
@@ -205,7 +224,9 @@ class Knight < Piece
 
   def initialize(player, row, column, game)
     super(player, row, column, game)
-    @player == :red ? @token = "\u2658".red : @token = "\u2658".blue
+    # @player == :red ? @token = "\u2658".red : @token = "\u2658".blue
+    @player == :red ? @token = "k".red : @token = "k".blue
+
   end
 
   def possible_moves
@@ -227,7 +248,9 @@ class Pawn < Piece
 
   def initialize(player, row, column, game)
     super(player, row, column, game)
-    @player == :red ? @token = "\u2659".red : @token = "\u2659".blue
+    # @player == :red ? @token = "\u2659".red : @token = "\u2659".blue
+    @player == :red ? @token = "p".red : @token = "p".blue
+
     @first_move = true
     @starting_position = [row, column].dup
   end
@@ -269,7 +292,9 @@ class Bishop < Piece
 
   def initialize(player, row, column, game)
     super(player, row, column, game)
-    @player == :red ? @token = "\u2657".red : @token = "\u2657".blue
+    # @player == :red ? @token = "\u2657".red : @token = "\u2657".blue
+    @player == :red ? @token = "b".red : @token = "b".blue
+
   end
 
   def possible_moves
@@ -284,7 +309,9 @@ class Rook < Piece
 
   def initialize(player, row, column, game)
     super(player, row, column, game)
-    @player == :red ? @token = "\u2656".red : @token = "\u2656".blue
+    # @player == :red ? @token = "\u2656".red : @token = "\u2656".blue
+    @player == :red ? @token = "r".red : @token = "r".blue
+
   end
 
   def possible_moves
@@ -297,11 +324,13 @@ class King < Piece
 
   def initialize(player, row, column, game)
     super(player, row, column, game)
-    @player == :red ? @token = "\u2655".red : @token = "\u2655".blue
+    # @player == :red ? @token = "\u2655".red : @token = "\u2655".blue
+    @player == :red ? @token = "K".red : @token = "K".blue
+
   end
 
   def possible_moves
-    possible_moves = []
+    possible_moves = circle(@row, @column)
   end
 end
 
@@ -310,7 +339,9 @@ class Queen < Piece
 
   def initialize(player, row, column, game)
     super(player, row, column, game)
-    @player == :red ? @token = "\u2654".red : @token = "\u2654".blue
+    # @player == :red ? @token = "\u2654".red : @token = "\u2654".blue
+    @player == :red ? @token = "Q".red : @token = "Q".blue
+
   end
 
   def possible_moves
