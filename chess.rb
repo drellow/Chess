@@ -84,6 +84,9 @@ class Game
       puts "Your type of piece cannot move here"
       valid_move = false
     end
+    if start.class == King
+      start.possible_moves.select {|move| start.check?(move[0],move[1]) == false }
+    end
     valid_move
   end
 
@@ -134,13 +137,14 @@ class Game
       row.each do |tile|
         if !tile.nil?
           if tile.player != opposing_team
-            opposing_pieces << tile
+            opposing_pieces << tile unless opposing_pieces.include?(tile)
           end
         end
       end
     end
     opposing_pieces
   end
+
 end
 
 class HumanPlayer
@@ -224,8 +228,6 @@ class Piece
     end
     arr
   end
-
-
 end
 
 class Knight < Piece
@@ -235,7 +237,6 @@ class Knight < Piece
     super(player, row, column, game)
     # @player == :red ? @token = "\u2658".red : @token = "\u2658".blue
     @player == :red ? @token = "k".red : @token = "k".blue
-
   end
 
   def possible_moves
@@ -254,6 +255,7 @@ end
 
 class Pawn < Piece
   attr_reader :token
+
 
   def initialize(player, row, column, game)
     super(player, row, column, game)
@@ -340,11 +342,11 @@ class King < Piece
 
   def possible_moves
     possible_moves = circle(@row, @column)
-    possible_moves.select {|move| check?(move[0],move[1]) == false }
   end
 
   def check?(x,y)
     #find all opposing pieces
+    # debugger
     opposing_pieces = @game.opposing_forces(self.player)
     #find where every opposing piece can move
     targetable_spaces = []
