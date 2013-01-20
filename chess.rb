@@ -84,9 +84,6 @@ class Game
       puts "Your type of piece cannot move here"
       valid_move = false
     end
-    if start.class == King
-      start.possible_moves.select {|move| start.check?(move[0],move[1]) == false }
-    end
     valid_move
   end
 
@@ -342,6 +339,7 @@ class King < Piece
 
   def possible_moves
     possible_moves = circle(@row, @column)
+    possible_moves.select {|move| check?(move[0],move[1]) == false }
   end
 
   def check?(x,y)
