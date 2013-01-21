@@ -123,7 +123,6 @@ class Game
       return_sub_array << KEY[position_string[1]]
       return_array << return_sub_array
     end
-    p return_array
     return_array
   end
 
@@ -349,6 +348,7 @@ class King < Piece
     #find where every opposing piece can move
     targetable_spaces = []
     opposing_pieces.each do |piece|
+      puts "#{piece.row},#{piece.column}"    
       targetable_spaces += piece.possible_moves
     end
     #king can not move to a space where an opposing player can go
