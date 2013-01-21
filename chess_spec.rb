@@ -58,6 +58,13 @@ describe Game do
 			game.check_move(["8c", "3h"], player_obj).should == true
 		end
 
+		it "should not allow queen to move legally"
+		it "should allow queen to move legally"
+		it "should not allow king to move illegally"
+		it "should allow king to move legally"
+	
+
+
 	end
 
 	describe "#opposing_forces" do
