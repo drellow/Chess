@@ -30,6 +30,11 @@ class Game
     end
   end
 
+  def checkmate?(team)
+    opposite_team = opposing_forces(team)
+    
+  end
+
   def make_board
     @game_board = Array.new(8) do
       # create a blank row
@@ -84,6 +89,14 @@ class Game
       puts "Your type of piece cannot move here"
       valid_move = false
     end
+    if start.class == King
+          # debugger
+
+      if start.check?(move_coords[1][0],move_coords[1][1]) == true
+        puts "cant move into check"
+        valid_move = false
+      end
+    end
     valid_move
   end
 
@@ -123,6 +136,7 @@ class Game
       return_sub_array << KEY[position_string[1]]
       return_array << return_sub_array
     end
+    p return_array
     return_array
   end
 
@@ -201,8 +215,8 @@ class Piece
         xdir += dir[0]
         ydir += dir[1]
         arr << [xdir,ydir] if in_bounds?(xdir,ydir)
-        break if @game.game_board[xdir][ydir] != nil
         break if !in_bounds?(xdir,ydir)
+        break if @game.game_board[xdir][ydir] != nil
       end
     end
     arr
@@ -218,8 +232,8 @@ class Piece
         xdir += dir[0]
         ydir += dir[1]
         arr << [xdir,ydir] if in_bounds?(xdir,ydir)
-        break if @game.game_board[xdir][ydir] != nil
         break if !in_bounds?(xdir,ydir)
+        break if @game.game_board[xdir][ydir] != nil
       end
     end
     arr
@@ -338,17 +352,14 @@ class King < Piece
 
   def possible_moves
     possible_moves = circle(@row, @column)
-    possible_moves.select {|move| check?(move[0],move[1]) == false }
+
   end
 
   def check?(x,y)
-    #find all opposing pieces
-    # debugger
     opposing_pieces = @game.opposing_forces(self.player)
     #find where every opposing piece can move
     targetable_spaces = []
     opposing_pieces.each do |piece|
-      puts "#{piece.row},#{piece.column}"    
       targetable_spaces += piece.possible_moves
     end
     #king can not move to a space where an opposing player can go
