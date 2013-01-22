@@ -20,9 +20,15 @@ class Game
       show_board
       puts "Red player go!"
       get_move(@player1)
+      # if checkmate?(:red)
+      #   puts "FWIAJRER"
+      # end
       show_board
       puts "Blue player go!"
       get_move(@player2)
+      if checkmate?(:blue)
+        puts "elahge;aesglhe"
+      end
       #save game here
       # File.open("save_chess_game.txt", "w") do |f|
       #   f.write(YAML.dump(self))
@@ -30,9 +36,35 @@ class Game
     end
   end
 
-  def checkmate?(team)
-    opposite_team = opposing_forces(team)
-    
+  # def checkmate?(team)
+  #   king = find_king(team)
+  #   kingx, kingy = king.row, king.column
+
+  #   checkmate = true
+  #   team_members = forces(team)
+  #   team_members.each do |piece|
+  #     row = piece.row
+  #     column = piece.column
+  #     possible_moves = piece.possible_moves
+  #     possible_moves.select! {|x,y| check_move([x,y], piece) == true}
+  #     possible_moves.each do |x,y|
+  #       safety_board = @game_board.dup
+
+  #       make_move([[row, column], [x, y]])
+
+  #       checkmate = false if !king.check?(team)
+  #       @game_board = safety_board
+  #     end
+  #   end
+  #   checkmate
+  # end
+
+  def find_king(team)
+    @game_board.each do |x|
+      x.each do |piece|
+        return piece if piece.class == King && piece.player == team
+      end
+    end
   end
 
   def make_board
@@ -40,10 +72,10 @@ class Game
       # create a blank row
       Array.new(8, nil)
     end
-    @game_board[0] = [Rook.new(:red, 0, 0, self), Knight.new(:red, 0, 1, self), Bishop.new(:red, 0, 2, self), King.new(:red, 0, 3, self), Queen.new(:red, 0, 4, self), Bishop.new(:red, 0, 5, self), Knight.new(:red, 0, 6, self), Rook.new(:red, 0, 7, self)]
+    @game_board[0] = [Rook.new(:red, 0, 0, self), Knight.new(:red, 0, 1, self), Bishop.new(:red, 0, 2, self), Queen.new(:red, 0, 3, self), King.new(:red, 0, 4, self), Bishop.new(:red, 0, 5, self), Knight.new(:red, 0, 6, self), Rook.new(:red, 0, 7, self)]
     8.times {|i| @game_board[1][i] =  Pawn.new(:red, 1, i, self)}
     8.times {|i| @game_board[6][i] =  Pawn.new(:blue, 6, i, self)}
-    @game_board[7] = [Rook.new(:blue, 7, 0, self), Knight.new(:blue, 7, 1, self), Bishop.new(:blue, 7, 2, self), King.new(:blue, 7, 3, self), Queen.new(:blue, 7, 4, self), Bishop.new(:blue, 7, 5, self), Knight.new(:blue, 7, 6, self), Rook.new(:blue, 7, 7, self)] #<< If I have time, I'll circle back to DRY
+    @game_board[7] = [Rook.new(:blue, 7, 0, self), Knight.new(:blue, 7, 1, self), Bishop.new(:blue, 7, 2, self), Queen.new(:blue, 7, 3, self), King.new(:blue, 7, 4, self), Bishop.new(:blue, 7, 5, self), Knight.new(:blue, 7, 6, self), Rook.new(:blue, 7, 7, self)] #<< If I have time, I'll circle back to DRY
   end
 
   def show_board
@@ -66,10 +98,8 @@ class Game
   end
 
   #this just returns true or false
-  def check_move(potential_move, player_obj)
+  def check_move(move_coords, player_obj)
     # debugger
-    valid_move = true
-    move_coords = convert_coords(potential_move)
     start = @game_board[move_coords[0][0]][move_coords[0][1]]
     destination = @game_board[move_coords[1][0]][move_coords[1][1]]
 
@@ -77,34 +107,35 @@ class Game
     piece_destinations = start.possible_moves
     unless start.player == player_obj.player
       puts "That ain't your piece"
-      valid_move = false
+      return false
     end
     unless destination.nil?
       if destination.player == player_obj.player
         puts "Trying to move on top of your own piece"
-        valid_move = false
+        return false
       end
     end
     unless piece_destinations.include?([move_coords[1][0], move_coords[1][1]])
       puts "Your type of piece cannot move here"
-      valid_move = false
+      return false
     end
-    if start.class == King
-          # debugger
-
-      if start.check?(move_coords[1][0],move_coords[1][1]) == true
-        puts "cant move into check"
-        valid_move = false
-      end
-    end
-    valid_move
+    # king = find_king(start.player)
+    # backup_board = @game_board.dup
+    # make_move(move_coords)
+    # if king.check?(start.player) == true
+    #   puts "cant put king into check"
+    #   return false
+    # end
+    # @game_board = backup_board
+    true
   end
 
-  def get_move(player_obj)
+ def get_move(player_obj)
     requested_move = player_obj.move
+    move_coords = convert_coords(requested_move)
 
-    if check_move(requested_move, player_obj)
-      make_move(requested_move)
+    if check_move(move_coords, player_obj)
+      make_move(move_coords)
     else
       puts "Your move was invalid!"
       get_move(player_obj)
@@ -113,9 +144,8 @@ class Game
 
   #this doesn't check -- it just makes a move.
   #Always run this AFTER checks have been made
-  def make_move(move)
+  def make_move(move_coords)
     # debugger
-    move_coords = convert_coords(move)
     start = @game_board[move_coords[0][0]][move_coords[0][1]]
     destination = @game_board[move_coords[1][0]][move_coords[1][1]]
 
@@ -125,9 +155,6 @@ class Game
     @game_board[move_coords[0][0]][move_coords[0][1]] = nil
   end
 
-  # takes user move input as array of two string and converts it to
-  # an array with two arrays each with a row and column coordinate
-  # ex. ["2a", "3d"] => [[6, 0], [5, 3]]
   def convert_coords(move_array)
     return_array = []
     move_array.each do |position_string|
@@ -136,23 +163,22 @@ class Game
       return_sub_array << KEY[position_string[1]]
       return_array << return_sub_array
     end
-    p return_array
     return_array
   end
 
   # Returns an array of all surviving pieces on opposite team
-  def opposing_forces(opposing_team)
-    opposing_pieces = []
+  def forces(team)
+    pieces = []
     @game_board.each do |row|
       row.each do |tile|
         if !tile.nil?
-          if tile.player != opposing_team
-            opposing_pieces << tile unless opposing_pieces.include?(tile)
+          if tile.player == team
+            pieces << tile unless pieces.include?(tile)
           end
         end
       end
     end
-    opposing_pieces
+    pieces
   end
 
 end
@@ -188,6 +214,27 @@ class Piece
 
   def in_bounds?(x,y)
     (0..7).include?(x) && (0..7).include?(y)
+  end
+
+  def check?(team)
+    # debugger
+    if team == :red
+      not_team = :blue
+    else
+      not_team = :red
+    end
+    king = @game.find_king(self.player)
+    kingx = king.row
+    kingy = king.column
+    opposing_pieces = @game.forces(not_team)
+    #find where every opposing piece can move
+    targetable_spaces = []
+    opposing_pieces.each do |piece|
+      targetable_spaces += piece.possible_moves
+    end
+    #king can not move to a space where an opposing player can go
+    return true if targetable_spaces.include?([kingx,kingy])
+    false #<< else return false
   end
 
   def circle(x,y)
@@ -245,8 +292,8 @@ class Knight < Piece
 
   def initialize(player, row, column, game)
     super(player, row, column, game)
-    # @player == :red ? @token = "\u2658".red : @token = "\u2658".blue
-    @player == :red ? @token = "k".red : @token = "k".blue
+    @player == :red ? @token = "\u2658".red : @token = "\u2658".blue
+    # @player == :red ? @token = "k".red : @token = "k".blue
   end
 
   def possible_moves
@@ -269,8 +316,8 @@ class Pawn < Piece
 
   def initialize(player, row, column, game)
     super(player, row, column, game)
-    # @player == :red ? @token = "\u2659".red : @token = "\u2659".blue
-    @player == :red ? @token = "p".red : @token = "p".blue
+    @player == :red ? @token = "\u2659".red : @token = "\u2659".blue
+    # @player == :red ? @token = "p".red : @token = "p".blue
 
     @first_move = true
     @starting_position = [row, column].dup
@@ -313,8 +360,8 @@ class Bishop < Piece
 
   def initialize(player, row, column, game)
     super(player, row, column, game)
-    # @player == :red ? @token = "\u2657".red : @token = "\u2657".blue
-    @player == :red ? @token = "b".red : @token = "b".blue
+    @player == :red ? @token = "\u2657".red : @token = "\u2657".blue
+    # @player == :red ? @token = "b".red : @token = "b".blue
 
   end
 
@@ -330,8 +377,8 @@ class Rook < Piece
 
   def initialize(player, row, column, game)
     super(player, row, column, game)
-    # @player == :red ? @token = "\u2656".red : @token = "\u2656".blue
-    @player == :red ? @token = "r".red : @token = "r".blue
+    @player == :red ? @token = "\u2656".red : @token = "\u2656".blue
+    # @player == :red ? @token = "r".red : @token = "r".blue
 
   end
 
@@ -345,8 +392,8 @@ class King < Piece
 
   def initialize(player, row, column, game)
     super(player, row, column, game)
-    # @player == :red ? @token = "\u2655".red : @token = "\u2655".blue
-    @player == :red ? @token = "K".red : @token = "K".blue
+    @player == :red ? @token = "\u2654".red : @token = "\u2654".blue
+    # @player == :red ? @token = "K".red : @token = "K".blue
 
   end
 
@@ -355,17 +402,7 @@ class King < Piece
 
   end
 
-  def check?(x,y)
-    opposing_pieces = @game.opposing_forces(self.player)
-    #find where every opposing piece can move
-    targetable_spaces = []
-    opposing_pieces.each do |piece|
-      targetable_spaces += piece.possible_moves
-    end
-    #king can not move to a space where an opposing player can go
-    return true if targetable_spaces.include?([x,y])
-    false #<< else return false
-  end
+
 
 end
 
@@ -374,8 +411,8 @@ class Queen < Piece
 
   def initialize(player, row, column, game)
     super(player, row, column, game)
-    # @player == :red ? @token = "\u2654".red : @token = "\u2654".blue
-    @player == :red ? @token = "Q".red : @token = "Q".blue
+    @player == :red ? @token = "\u2655".red : @token = "\u2655".blue
+    # @player == :red ? @token = "Q".red : @token = "Q".blue
 
   end
 
